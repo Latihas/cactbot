@@ -135,6 +135,6 @@ jobs:
         with:
           tag_name: ${{ env.artifact_sha }}
           name: Release ${{ env.artifact_sha }}
-          files: ./publish/cactbot.zip
+          files: ./publish/cactbot-release/cactbot/cactbot.zip
           generate_release_notes: true
           make_latest: true
