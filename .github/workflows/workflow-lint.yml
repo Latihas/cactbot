@@ -1,18 +1,19 @@
 name: Workflow Lint
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '*.yml'
-      - '.github/workflows/*.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - '*.yml'
-      - '.github/workflows/*.yml'
+  workflow_dispatch:
+#  push:
+#    branches:
+#      - main
+#    paths:
+#      - '*.yml'
+#      - '.github/workflows/*.yml'
+#  pull_request:
+#    branches:
+#      - main
+#    paths:
+#      - '*.yml'
+#      - '.github/workflows/*.yml'
 
 jobs:
   main:
