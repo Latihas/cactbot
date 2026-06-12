@@ -71,7 +71,7 @@ jobs:
         uses: microsoft/setup-msbuild@v3
 
       - name: Add Custom Problem Matcher
-        run: echo "::add-matcher::.github/matchers/${{ github.job }}.json"
+        run: echo "::add-matcher::.github/matchers/msbuild.json"
 
       - name: MSBuild
         run: msbuild /p:Configuration=Release /p:Platform=x64 plugin/Cactbot.sln
