@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Sync upstream repository
-        uses: tgymnich/fork-sync@v1.9.0
+        uses: tgymnich/fork-sync@v2.0.10
         with:
           owner: NewMoe-Technology
           base: main
