@@ -88,10 +88,13 @@ jobs:
       - uses: ./.github/actions/setup-js-env
 
       - name: Set artifact name
-        shell: bash
+        id: generate_version
+        shell: pwsh
         run: |
-          sha=$(echo "${{ github.sha }}" | cut -c 1-8)
-          echo "artifact_sha=$sha" >> $GITHUB_ENV
+          $time = (Get-Date).AddHours(8).ToString("yyyyMMddHHmmss")
+          $sha = "${{ github.sha }}".Substring(0, 8)
+          $version = "$time-$sha"
+          echo "VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Check dependencies cache
         id: cache-dependencies
@@ -133,8 +136,8 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.artifact_sha }}
-          name: Release ${{ env.artifact_sha }}
+          tag_name: ${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
           files: ./publish/cactbot-release/cactbot/cactbot.zip
           generate_release_notes: true
           make_latest: true
