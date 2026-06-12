@@ -1,8 +1,9 @@
 name: Lint PR Title
 
 on:
-  pull_request_target:
-    types: [edited, opened, reopened, synchronize]
+  workflow_dispatch:
+#  pull_request_target:
+#    types: [edited, opened, reopened, synchronize]
 
 jobs:
   main:

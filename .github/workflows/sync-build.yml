@@ -23,11 +23,13 @@ jobs:
         uses: tgymnich/fork-sync@v2.0.10
         with:
           owner: NewMoe-Technology
+          repo: cactbot
           base: main
           head: main
           retry_after: 0
           retries: 1
           token: '${{ secrets.TRIGGER_REPO_TOKEN }}'
+          auto_approve: true
 
       - name: Pull latest changes after sync
         run: git pull origin main
