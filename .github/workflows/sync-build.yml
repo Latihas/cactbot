@@ -15,6 +15,9 @@ jobs:
       contents: write
       pull-requests: write
     
+    outputs:
+      has_changes: ${{ steps.check-changes.outputs.has_changes }}
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -35,15 +38,53 @@ jobs:
         run: |
           git fetch upstream
 
+      - name: Save current commit SHA before merge
+        id: pre-merge
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
       - name: Merge upstream changes
         run: |
           git checkout main
           git merge upstream/main --no-edit --strategy-option theirs
 
+      - name: Check if there are actual changes
+        id: check-changes
+        run: |
+          pre_merge_sha="${{ steps.pre-merge.outputs.sha }}"
+          post_merge_sha=$(git rev-parse HEAD)
+          
+          if [ "$pre_merge_sha" != "$post_merge_sha" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "上游仓库有新更新，将执行编译步骤"
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "上游仓库无更新"
+          fi
+        shell: bash
+
       - name: Push changes to origin
+        if: steps.check-changes.outputs.has_changes == 'true'
         run: |
           git remote set-url origin https://x-access-token:${{ secrets.TRIGGER_REPO_TOKEN }}@github.com/${{ github.repository }}.git
           git push origin main
+
+  build:
+    needs: sync-and-build
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    if: |
+      needs.sync-and-build.outputs.has_changes == 'true' ||
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: main
 
       - uses: ./.github/actions/setup-js-env
 
@@ -87,8 +128,8 @@ jobs:
 
       - name: Package cactbot release
         run: |
-          cd publish
-          7z a cactbot.zip cactbot-release/
+          cd publish/cactbot-release/cactbot
+          7z a cactbot.zip ./
 
       - name: Release
         uses: softprops/action-gh-release@v2
