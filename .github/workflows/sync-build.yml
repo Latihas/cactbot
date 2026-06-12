@@ -25,6 +25,9 @@ jobs:
           owner: NewMoe-Technology
           base: main
           head: main
+          retry_after: 0
+          retries: 1
+          token: '${{ secrets.TRIGGER_REPO_TOKEN }}'
 
       - name: Pull latest changes after sync
         run: git pull origin main
