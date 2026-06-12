@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  sync-and-build:
+  sync:
     runs-on: windows-latest
     permissions:
       contents: write
@@ -70,13 +70,12 @@ jobs:
           git push origin main
 
   build:
-    needs: sync-and-build
+    needs: sync
     runs-on: windows-latest
     permissions:
       contents: write
     if: |
       needs.sync-and-build.outputs.has_changes == 'true' ||
-      github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch'
     
     steps:
