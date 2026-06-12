@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 */1 * * *'
+    - cron: '0 */2 * * *'
   workflow_dispatch:
 
 jobs:
@@ -18,21 +18,32 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-
-      - name: Sync upstream repository
-        uses: tgymnich/fork-sync@v2.0.10
         with:
-          owner: NewMoe-Technology
-          repo: cactbot
-          base: main
-          head: main
-          retry_after: 0
-          retries: 1
-          token: '${{ secrets.TRIGGER_REPO_TOKEN }}'
-          auto_approve: true
+          fetch-depth: 0
+          ref: main
 
-      - name: Pull latest changes after sync
-        run: git pull origin main
+      - name: Configure Git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/NewMoe-Technology/cactbot.git
+
+      - name: Fetch upstream changes
+        run: |
+          git fetch upstream
+
+      - name: Merge upstream changes
+        run: |
+          git checkout main
+          git merge upstream/main --no-edit --strategy-option theirs
+
+      - name: Push changes to origin
+        run: |
+          git remote set-url origin https://x-access-token:${{ secrets.TRIGGER_REPO_TOKEN }}@github.com/${{ github.repository }}.git
+          git push origin main
 
       - uses: ./.github/actions/setup-js-env
 
@@ -86,4 +97,4 @@ jobs:
           name: Release ${{ env.artifact_sha }}
           files: ./publish/cactbot.zip
           generate_release_notes: true
-          make_latest: true 
+          make_latest: true
