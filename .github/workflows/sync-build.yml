@@ -1,0 +1,84 @@
+﻿name: Sync & Build
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 */1 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync-and-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Sync upstream repository
+        uses: tgymnich/fork-sync@v1.9.0
+        with:
+          owner: NewMoe-Technology
+          base: main
+          head: main
+
+      - name: Pull latest changes after sync
+        run: git pull origin main
+
+      - uses: ./.github/actions/setup-js-env
+
+      - name: Set artifact name
+        shell: bash
+        run: |
+          sha=$(echo "${{ github.sha }}" | cut -c 1-8)
+          echo "artifact_sha=$sha" >> $GITHUB_ENV
+
+      - name: Check dependencies cache
+        id: cache-dependencies
+        uses: actions/cache@v5
+        with:
+          path: ./plugin/ThirdParty
+          key: |
+            ${{ runner.os }}-cactbot-${{ hashFiles('./util/fetch_deps.ts', './util/DEPS.json5') }}
+          restore-keys: |
+            ${{ runner.os }}-cactbot-
+
+      - name: Fetch dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        run: npm run fetch-deps
+
+      - name: Set up msbuild
+        uses: microsoft/setup-msbuild@v3
+
+      - name: Add Custom Problem Matcher
+        run: echo "::add-matcher::.github/matchers/${{ github.job }}.json"
+
+      - name: MSBuild
+        run: msbuild /p:Configuration=Release /p:Platform=x64 plugin/Cactbot.sln
+        shell: cmd
+
+      - name: Build JavaScript UI Module Bundles
+        run: npm run build
+        timeout-minutes: 10
+
+      - name: Generate artifact
+        shell: bash
+        run: ./util/publish.sh
+
+      - name: Package cactbot release
+        run: |
+          cd publish
+          7z a cactbot.zip cactbot-release/
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.artifact_sha }}
+          name: Release ${{ env.artifact_sha }}
+          files: ./publish/cactbot.zip
+          generate_release_notes: true
+          make_latest: true 

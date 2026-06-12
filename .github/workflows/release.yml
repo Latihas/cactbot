@@ -1,11 +1,11 @@
 name: Create Release Artifact
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'package.json'
+#  push:
+#    branches:
+#      - main
+#    paths:
+#      - 'package.json'
   workflow_dispatch:
 
 jobs:
