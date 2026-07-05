@@ -14,7 +14,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      workflows: write
     
     outputs:
       has_changes: ${{ steps.check-changes.outputs.has_changes }}
